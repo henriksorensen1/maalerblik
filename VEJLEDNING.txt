@@ -1,0 +1,152 @@
+MÅLERBLIK · VERSION 1.0
+Dansk web-app til dine private aflæsninger af el, vand og varme
+
+Appen er leveret som færdige filer. Den er IKKE publiceret eller installeret
+på din iPhone. Der kræves ingen database, konto eller abonnement i appen.
+
+KOM GODT I GANG
+
+1. Pak ZIP-filen ud. Mappen maalerblik indeholder appen.
+2. Læg appens filer på et webhotel med HTTPS som beskrevet nedenfor.
+3. Åbn den nye adresse i Safari på din iPhone.
+4. Føj den til hjemmeskærmen, og åbn fra ikonet.
+5. Start med dine egne aflæsninger. Appen leveres uden testdata.
+
+HOSTING PÅ DIT EGET WEBHOTEL
+
+Opret fx en mappe med navnet maalerblik på dit eksisterende webhotel.
+Upload disse filer til samme mappe:
+
+  index.html, style.css, app.mjs, core.mjs, sw.js,
+  manifest.webmanifest, icon.svg, icon-180.png, icon-192.png, icon-512.png
+
+Adressen vil fx være https://dit-domæne.dk/maalerblik/ (kun et eksempel).
+Brug den afsluttende skråstreg. Der er intet at bygge eller installere
+på serveren. Undgå hosting, der indsætter annoncer eller ekstra scripts.
+Din udbyder skal servere .mjs som JavaScript, fx text/javascript eller
+application/javascript. Manifestet kan bruge application/manifest+json.
+sw.js skal kunne hentes uden login-omdirigering og helst med
+Cache-Control: no-cache. Almindelige statiske webhoteller kan bruges.
+
+ALTERNATIV: GITHUB PAGES
+
+Opret et repository på GitHub, fx maalerblik. Upload appfilerne ovenfor
+direkte i roden på main-grenen. Vælg Settings > Pages, og vælg udgivelse
+fra en gren (Deploy from a branch), main og / (root). Gem indstillingen.
+GitHub viser adressen, når siden er klar. Sørg for, at HTTPS er aktiveret.
+På GitHub Free kræver denne løsning et offentligt repository.
+Selve appkoden bliver offentlig; dine indtastede tal gemmes stadig lokalt.
+Upload aldrig personlige JSON-backups til dette repository/webhotel.
+
+Officiel hostingvejledning:
+https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-github-pages-site
+
+INSTALLATION PÅ IPHONE
+
+1. Åbn din hostede HTTPS-adresse i Safari med internetforbindelse.
+2. Tryk på Del. I visse Safari-layout ligger Del i sidemenuen.
+3. Vælg “Føj til hjemmeskærm”. Hvis den mangler, se “Rediger handlinger”.
+4. Lad “Åbn som webapp” være slået til, hvis valget vises. Tryk Tilføj.
+5. Åbn Målerblik fra det nye ikon, stadig med internet.
+6. Fold “Sådan bruger du Målerblik” ud. Vent på “Klar til offline”.
+7. Test gerne ved at slå flytilstand til, lukke og åbne appen igen.
+
+Ordlyden kan variere med iOS-version og Safari-layout.
+Officiel Apple-vejledning:
+https://support.apple.com/guide/iphone/open-as-web-app-iphea86e5236/ios
+
+SÅDAN AFLÆSER DU
+
+Indtast det samlede tal, som står på hver måler, ikke periodens forbrug.
+El bruger kWh, vand m³ og varme MWh. Appen omregner ikke enheder.
+Hvis varmemåleren viser kWh, divider med 1.000, før du skriver MWh.
+Vælg dato og udfyld en, to eller alle tre målere. Tomme felter springes
+over. 0 er en gyldig aflæsning. Tryk “Gem aflæsning”.
+
+Brug komma eller punktum til decimaler, højst tre decimaler. Ingen
+tusindtalsseparatorer: skriv 12345,67, ikke 12.345,67. Appen viser
+bagefter tallene med dansk talformat.
+
+Den første aflæsning pr. måler er udgangspunkt. Fra den næste vises
+forbruget som forskellen mellem de samlede tal. Datoer er uden klokkeslæt;
+du kan gemme én aflæsning pr. måler pr. dag. Fremtidige datoer afvises.
+Ældre aflæsninger kan tilføjes bagefter; rækkefølgen og forbruget beregnes
+igen. Ret eller slet aflæsninger i historikken. Sletning skal bekræftes.
+
+Ved målerskift/nulstilling: markér “Ny måler / nulstilling” på den første
+aflæsning fra den nye måler. Der beregnes ikke forbrug hen over skiftet.
+Det gælder også, hvis den nye måler starter på et højere tal end den gamle.
+Lavere tal uden denne markering afvises. Ret markeringen i historikken,
+hvis du senere finder en fejl eller indsætter en ældre aflæsning.
+
+Grafen kan skifte mellem el, vand og varme. Den viser de seneste 12
+forbrugsperioder, hver som en søjle. En periode løber fra én aflæsning til
+den næste. Perioderne er ikke nødvendigvis lige lange; se antal dage i
+historikken. Søjlerne er forbrug pr. periode, ikke pr. dag eller måned.
+Ingen graf for en måler før den har to aflæsninger uden målerskift imellem.
+
+BACKUP OG FLYTNING TIL NY ENHED
+
+Tryk “Eksportér backup”. Gem JSON-filen i Filer, fx iCloud Drive, og
+kontrollér, at filen faktisk ligger der. Safari kan vise en hentet fil i
+Overførsler. Eksporttidspunktet i appen angiver en startet eksport;
+appen kan ikke kontrollere, om du har gemt filen.
+
+På en ny enhed: åbn samme app, vælg “Importér backup”, vælg JSON-filen,
+læs oversigten og tryk Importér. Nye aflæsninger lægges til. Identiske
+aflæsninger for samme måler/dato springes over. Forskellige tal eller
+markeringer på samme måler/dato afvises; intet ændres. Ret eventuelle
+konflikter i historikken og prøv igen. Import sletter aldrig din historik.
+
+Tag backup jævnligt og før rettelser, enhedsskift eller rydning af Safari.
+Backupfiler indeholder dine målerdata som almindelig tekst.
+
+LOKAL LAGRING OG OFFLINE
+
+Data gemmes i localStorage på denne enhed. Der er ingen server med dine
+aflæsninger og ingen synkronisering mellem enheder. Appen anvender ingen
+analyseværktøjer, eksterne fonte eller eksterne biblioteker. Webhotellet
+modtager almindelige besøg på appens filer, men appen sender ikke dine
+indtastede målerdata til webhotellet.
+
+Safari og en installeret webapp kan have adskilt lager. Det gælder også
+forskellige browsere, profiler og adresser. Eksportér først, hvis du
+allerede har indtastet i Safari, og importér i hjemmeskærm-appen ved behov.
+Vælg én fast adresse og brug hjemmeskærm-appen i hverdagen.
+
+Offline virker efter den første vellykkede indlæsning og lagring af alle
+appfiler via service worker. HTTPS kræves på telefonen. Du kan derefter
+se, tilføje, rette og eksportere aflæsninger uden internet. Browseren kan
+rydde både appfiler og data; offline og localStorage erstatter ikke backup.
+Privat browsing anbefales ikke, da data kan forsvinde, når den afsluttes.
+At åbne index.html direkte fra Filer giver ikke en installerbar offline-app.
+
+Hvis lageret er utilgængeligt eller beskadiget, viser appen en fejl og
+beskytter eksisterende data mod overskrivning. Ved beskadigede data kan
+“Hent oprindelige data” bruges til at hente den rå fil til fejlsøgning.
+En rå, beskadiget fil er ikke nødvendigvis en gyldig backup.
+Hvis et andet åbent vindue ændrer data, skal siden genindlæses.
+
+Teknisk baggrund:
+https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage
+https://developer.mozilla.org/en-US/docs/Web/Security/Defenses/Secure_Contexts
+
+LOKAL TEST PÅ EN COMPUTER (VALGFRIT)
+
+En teknisk hjælper kan starte en statisk server i maalerblik-mappen,
+fx med Python 3: python3 -m http.server 8080 --bind 127.0.0.1
+Åbn http://localhost:8080/ på samme computer. Localhost kan bruges til
+offline-test uden HTTPS. Adressen er ikke tilgængelig på din iPhone.
+Appen kræver ingen npm-installation. Med Node.js kan beregningstests køres
+fra maalerblik-mappen: node --test tests/core.test.mjs
+
+VED SENERE OPDATERING AF FILER
+
+Tag backup først. Upload hele appen til den samme adresse. Ved ændringer
+i appfiler skal cacheversionen i sw.js ændres (fx v3 til v4), så der hentes
+en ny samlet filpakke. Luk alle vinduer med appen og åbn igen med internet
+for at aktivere opdateringen. Luk og åbn eventuelt en ekstra gang.
+Bevar datanøglen maalerblik-v1 og backupformatets version, medmindre der
+også laves en datamigrering. En cacheversion er ikke en dataformatversion.
+
+Se TESTRESULTAT.txt for den udførte test og afgrænsninger.

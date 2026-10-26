@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="da">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#164e43"><meta name="description" content="Dine private aflæsninger af el, vand og varme. Gemmes på din enhed.">
+  <meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Målerblik"><meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <title>Målerblik · El, vand og varme</title>
+  <link rel="manifest" href="./manifest.webmanifest"><link rel="apple-touch-icon" href="./icon-180.png"><link rel="icon" href="./icon.svg" type="image/svg+xml"><link rel="stylesheet" href="./style.css">
+  <script type="module" src="./app.mjs"></script>
+</head>
+<body>
+  <a class="skip" href="#main">Gå til indhold</a>
+  <header class="topbar"><a class="brand" href="./"><span class="brand-icon" aria-hidden="true">ϟ</span>Målerblik<span class="brand-sub">DIT HJEMS FORBRUG</span></a><span class="privacy"><span aria-hidden="true">●</span> Kun på din enhed</span></header>
+  <main id="main">
+    <div class="intro"><div><p class="eyebrow">LIDT OVERBLIK I HVERDAGEN</p><h1>Hold øje med dit forbrug.</h1><p class="muted">El, vand og varme. Ét roligt sted at samle dine aflæsninger.</p></div><a class="text-link" href="#help">Sådan virker det <span aria-hidden="true">↗</span></a></div>
+    <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
+    <div id="storage-error" class="notice error" role="alert" hidden></div>
+    <div class="overview" id="overview" aria-label="Seneste aflæsninger"></div>
+    <div class="workspace">
+      <section class="panel entry-panel" aria-labelledby="entry-title">
+        <div class="section-heading"><span class="step">＋</span><div><h2 id="entry-title">Ny aflæsning</h2><p class="muted">Skriv det samlede tal på måleren.</p></div></div>
+        <form id="reading-form" novalidate>
+          <label for="date">Dato for aflæsning</label><input id="date" name="date" type="date" required min="1900-01-01">
+          <div id="meter-inputs"></div>
+          <p class="field-help" id="input-help">Udfyld én eller flere målere. Brug fx 12345,67 uden tusindtalsseparator.</p>
+          <div id="form-error" class="form-error" role="alert" hidden></div>
+          <button class="primary full" id="save" type="submit">Gem aflæsning <span aria-hidden="true">↗</span></button>
+          <button id="cancel-edit" class="secondary full" type="button" hidden>Annullér redigering</button>
+          <p class="save-note">Gemmes på denne enhed · Ingen konto nødvendig</p>
+        </form>
+      </section>
+      <section class="panel graph-panel" aria-labelledby="graph-title">
+        <div class="section-heading"><div><p class="eyebrow">FRA AFLÆSNING TIL OVERBLIK</p><h2 id="graph-title">Dit forbrug over tid</h2></div><span class="chart-mark" aria-hidden="true">▥</span></div>
+        <div class="segmented" id="graph-tabs" role="group" aria-label="Vælg måler til graf"><button data-meter="el" aria-pressed="true">El</button><button data-meter="vand" aria-pressed="false">Vand</button><button data-meter="varme" aria-pressed="false">Varme</button></div>
+        <div id="chart"></div>
+        <p class="chart-caption">Forbrug mellem to aflæsninger. Perioderne kan være forskellige i længde; se dage i historikken. Målerskift starter en ny serie.</p>
+      </section>
+    </div>
+    <section class="panel history-panel" aria-labelledby="history-title">
+      <div class="history-heading"><div><p class="eyebrow">DINE GEMTE TAL</p><h2 id="history-title">Historik <span id="history-count" class="count">0</span></h2></div><label class="filter-label">Vis måler<select id="history-filter"><option value="all">Alle målere</option><option value="el">El</option><option value="vand">Vand</option><option value="varme">Varme</option></select></label></div>
+      <div id="history"></div>
+    </section>
+    <section class="backup-strip" aria-labelledby="backup-title"><div class="backup-copy"><span class="backup-icon" aria-hidden="true">↓</span><div><h2 id="backup-title">Dine tal. Din backup.</h2><p>Gem en kopi i Filer, så dine aflæsninger er sikret.</p><p id="backup-status" class="small"></p></div></div><div class="backup-actions"><button id="export" class="secondary">Eksportér backup</button><button id="import" class="secondary">Importér backup</button><input id="import-file" type="file" accept=".json,application/json" hidden><button id="rescue" class="secondary" hidden>Hent oprindelige data</button></div></section>
+    <section class="help" id="help"><details><summary>Sådan bruger du Målerblik</summary><div class="help-content"><h3>Start med tallene på dine målere</h3><p>Vælg dato, indtast målerens samlede tal, og tryk Gem. Den første aflæsning er dit udgangspunkt. Fra den næste vises forskellen automatisk. Du kan rette og slette i historikken; forbruget beregnes igen.</p><h3>Ny måler?</h3><p>Markér “Ny måler / nulstilling” på den første aflæsning efter et målerskift. Den bliver et nyt udgangspunkt uden beregnet forbrug over skiftet. Det virker også, hvis det nye tal er højere end det gamle.</p><h3>Føj til hjemmeskærm på iPhone</h3><ol><li>Åbn appens HTTPS-adresse i Safari.</li><li>Tryk Del (eventuelt via sidemenuen), og vælg “Føj til hjemmeskærm”.</li><li>Slå “Åbn som webapp” til, hvis valget vises, og tryk Tilføj.</li><li>Åbn fra det nye ikon med internet første gang. Vent på “Klar til offline”.</li></ol><p id="offline-status" role="status">Kontrollerer offline-funktion…</p><h3>Husk backup</h3><p>Data gemmes kun i denne browser/webapp på denne enhed. Ingen automatisk synkronisering. Rydning af webstedsdata, privat browsing eller enhedsskift kan koste data. Eksportér jævnligt en JSON-backup til Filer. Import lægger nye aflæsninger til; identiske springes over, og konflikter afvises. Brug samme faste adresse og samme app hver gang.</p><p>Safari og hjemmeskærm-appen kan have adskilt lager. Tag en backup før installation, og importér den i appen ved behov. Gem aldrig dine backupfiler på en offentlig hjemmeside.</p></div></details></section>
+    <footer><span>Målerblik</span><span>Små aflæsninger. Bedre overblik.</span><span>Version 1.0</span></footer>
+  </main>
+  <dialog id="import-dialog" aria-labelledby="import-title"><h2 id="import-title">Importér backup</h2><p id="import-summary"></p><p>Dine nuværende aflæsninger bliver bevaret.</p><div class="dialog-actions"><button class="secondary" id="import-cancel">Annullér</button><button class="primary" id="import-confirm">Importér</button></div></dialog>
+  <noscript><p class="notice error">Slå JavaScript til i Safari for at gemme og se aflæsninger.</p></noscript>
+</body></html>

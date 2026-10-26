@@ -1,0 +1,58 @@
+MÅLERBLIK · TESTRESULTAT
+Dato: 26. oktober 2026
+
+RESULTAT
+10 automatiske beregningstests bestået. Lokal browserafprøvning bestået
+for de nedenstående forløb. Ingen publicering er foretaget.
+
+AUTOMATISKE TESTS (Node.js)
+Testkilden medfølger i tests/core.test.mjs.
+
+1. Dansk decimalkomma, decimalpunkt og 0; ugyldige tal afvises.
+2. Gyldige kalenderdatoer, skudår og ugyldige datoer.
+3. Præcise decimaldifferenser, kronologisk sortering og særskilte målere.
+4. Efterregistrering, rettelser og sletning genberegner differenser.
+5. Målerskift/nulstilling giver nyt udgangspunkt, også ved højere tal.
+6. Faldende aflæsninger og brud på efterfølgende aflæsning afvises.
+7. Dubletter, gentagne id'er, fremtidige datoer og ugyldige felter afvises.
+8. JSON-backup bevarer tal og markeringer; forkert format/version afvises.
+9. Import tilføjer nye, springer identiske over og afviser konflikter.
+10. Ugyldige strukturer og for store datasæt afvises; tom backup er gyldig.
+
+Syntaxkontrol af app.mjs og sw.js bestået.
+
+BROWSERTEST (Codex' lokale in-app-browser på macOS)
+Udført med egne prøvetal; tallene er ikke lagt i leverancen.
+
+- Tom startside med indtastning for alle tre målere.
+- Gemte to datoer for alle tre målere.
+- Kontrollerede forbrug: 200,2 kWh, 5,25 m³ og 0,8 MWh.
+- Rettede elaflæsning; både kort, historik og graf blev opdateret til
+  205 kWh for perioden.
+- Skiftede graf til vand og varme med korrekte værdier.
+- Eksporterede en rigtig JSON-fil og importerede den igen: 0 nye,
+  6 identiske, stadig 6 rækker efter import.
+- Importerede en ny aflæsning: 7 rækker, eksisterende tal bevaret.
+- Importerede en modstridende aflæsning: afvist, stadig 7 rækker.
+- Genindlæste siden og kontrollerede, at de gemte tal stadig var der.
+- Kontrollerede mobilvisning ved 390 pixels og smal visning ved
+  320 pixels samt computerlayout ved 1200 pixels, via browserrammer.
+  Indholdets målte bredde svarede til rammen uden vandret overløb.
+  Smalvisningen er efterfølgende tilpasset med aflæsningskort i én kolonne.
+- Service worker hentede alle appfiler og viste “Klar til offline”.
+- Slukkede den lokale webserver helt og genindlæste appen: historik
+  og brugerflade var tilgængelig fra cache.
+- Mens serveren var slukket: gemte en ny elaflæsning, kontrollerede
+  30 kWh over 6 dage og genindlæste igen. Alle 8 rækker var bevaret.
+- Offline-status viste klar, og der var ingen fejl i browserens konsol
+  ved den afsluttende kontrol.
+
+AFGRÆNSNING
+Der er ikke testet på en fysisk iPhone, i en installeret iOS-webapp eller
+på et offentligt webhotel. Hjemmeskærm-installation, iOS' håndtering af
+Filer og længerevarende bevarelse af lager/cache skal bekræftes på din
+egen telefon. Lagerblokering, fyldt lager og samtidige vinduer er
+håndteret i koden, men er ikke fremprovokeret i browsertesten.
+
+Skærmbilledet maalerblik-forhaandsvisning.png viser prøvetal fra testen.
+Selve appfilerne indeholder ingen aflæsningsdata.

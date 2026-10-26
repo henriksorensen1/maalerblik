@@ -1,0 +1,16 @@
+{
+  "id": "./",
+  "name": "Målerblik – el, vand og varme",
+  "short_name": "Målerblik",
+  "lang": "da",
+  "description": "Private måleraflæsninger på din enhed",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f5f6f1",
+  "theme_color": "#164e43",
+  "icons": [
+    { "src": "./icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
