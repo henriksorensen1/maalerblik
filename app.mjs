@@ -1,28 +1,46 @@
-import { METERS, today, parseValue, validateRecords, intervals, readBackup, mergeRecords } from './core.mjs';
+import { METERS, today, parseValue, validateRecords, intervals, readBackup, mergeRecords } from './core.mjs?v=2-kwh';
 const $ = s => document.querySelector(s);
-const KEY='maalerblik-v1', BACKUP_KEY='maalerblik-last-export';
+const KEY='maalerblik-v2-kwh', LEGACY_KEY='maalerblik-v1', BACKUP_KEY='maalerblik-last-export';
 const fmt=n=>new Intl.NumberFormat('da-DK',{maximumFractionDigits:3}).format(n);
 const dateLabel=d=>new Intl.DateTimeFormat('da-DK',{day:'numeric',month:'short',year:'numeric'}).format(new Date(d+'T12:00:00'));
 const styles={el:['#c57b16','#fbf1d9'],vand:['#237ca4','#e7f3f9'],varme:['#b45f4e','#f9ebe5']};
-let records=[], original=null, writable=true, editing=null, selected='el', pending=null, limit=30;
+let records=[], original=null, rescueSource=null, writable=true, editing=null, selected='el', pending=null, limit=30;
 function tell(message,error=false) { $('#notice').textContent=message; $('#notice').classList.toggle('error',error); $('#notice').hidden=false; }
 function storageFailure(message) {
   writable=false; $('#storage-error').textContent=message; $('#storage-error').hidden=false;
   $('#save').disabled=true; $('#import').disabled=true;
-  $('#rescue').hidden=original===null;
+  $('#rescue').hidden=rescueSource===null;
 }
-function load() {
+function chooseHeatUnit(source){
+  $('#heat-source').textContent=source;
+  $('#heat-dialog').showModal();
+  return new Promise(resolve=>{
+    const finish=unit=>{for(const id of ['heat-keep','heat-convert'])$('#'+id).onclick=null;$('#heat-dialog').close();resolve(unit);};
+    $('#heat-keep').onclick=()=>finish('kWh');$('#heat-convert').onclick=()=>finish('MWh');
+  });
+}
+$('#heat-dialog').addEventListener('cancel',e=>e.preventDefault());
+async function readWithHeatChoice(text,source){
+  try{return readBackup(text);}catch(e){if(e.code!=='HEAT_UNIT_REQUIRED')throw e;return readBackup(text,await chooseHeatUnit(source));}
+}
+async function load() {
   try {
     original=localStorage.getItem(KEY);
-    records=original===null ? [] : readBackup(original);
+    const legacy=original===null?localStorage.getItem(LEGACY_KEY):null;
+    rescueSource=original??legacy;
+    records=rescueSource===null ? [] : await readWithHeatChoice(rescueSource,'Der findes aflæsninger fra den tidligere version af Målerblik. Hvordan indtastede du dine varmetal?');
     localStorage.setItem('maalerblik-probe','1'); localStorage.removeItem('maalerblik-probe');
+    if(legacy!==null){
+      if(localStorage.getItem(LEGACY_KEY)!==legacy)throw Error('Den gamle historik blev ændret i et andet vindue. Genindlæs appen.');
+      persist(records);tell('Din historik er klar. Varme vises nu i kWh. Den oprindelige historik er bevaret som en lokal kopi.');
+    }
   } catch(e) { storageFailure('Lageret kan ikke læses eller bruges: '+e.message+' Eksisterende data bliver ikke overskrevet. Hent eventuelt de oprindelige data, og prøv at genåbne appen uden privat browsing.'); }
 }
 function persist(next) {
   if (!writable) throw Error('Lokal lagring er ikke tilgængelig. Ingen ændringer er gemt.');
   const clean=validateRecords(next);
   if(localStorage.getItem(KEY)!==original) throw Error('Data er ændret i et andet vindue. Genindlæs siden, før du prøver igen.');
-  const raw=JSON.stringify({app:'maalerblik',version:1,records:clean});
+  const raw=JSON.stringify({app:'maalerblik',version:2,heatUnit:'kWh',records:clean});
   try {localStorage.setItem(KEY,raw);} catch {throw Error('Der er ikke plads eller adgang til lokal lagring. Ændringen er ikke gemt. Eksportér dine eksisterende aflæsninger som backup.');}
   records=clean; original=raw; render();
 }
@@ -103,14 +121,14 @@ $('#graph-tabs').addEventListener('click',e=>{const b=e.target.closest('button')
 $('#history-filter').addEventListener('change',()=>{limit=30;renderHistory();});
 function download(content,name){const blob=new Blob([content],{type:'application/json;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);}
 function renderBackupStatus(){let date;try{date=localStorage.getItem(BACKUP_KEY);}catch{}$('#backup-status').textContent=date?'Seneste eksport: '+new Date(date).toLocaleString('da-DK'):'Ingen backup eksporteret endnu.';}
-$('#export').addEventListener('click',()=>{download(JSON.stringify({app:'maalerblik',version:1,exportedAt:new Date().toISOString(),records},null,2),'maalerblik-backup-'+today()+'.json');try{localStorage.setItem(BACKUP_KEY,new Date().toISOString());}catch{}renderBackupStatus();tell('Backup er klar til at blive gemt. Kontrollér, at JSON-filen er gemt i Filer eller Overførsler.');});
-$('#rescue').addEventListener('click',()=>download(original,'maalerblik-oprindelige-data.json'));
+$('#export').addEventListener('click',()=>{download(JSON.stringify({app:'maalerblik',version:2,heatUnit:'kWh',exportedAt:new Date().toISOString(),records},null,2),'maalerblik-backup-'+today()+'.json');try{localStorage.setItem(BACKUP_KEY,new Date().toISOString());}catch{}renderBackupStatus();tell('Backup er klar til at blive gemt. Kontrollér, at JSON-filen er gemt i Filer eller Overførsler.');});
+$('#rescue').addEventListener('click',()=>download(rescueSource,'maalerblik-oprindelige-data.json'));
 $('#import').addEventListener('click',()=>{$('#import-file').value='';$('#import-file').click();});
-$('#import-file').addEventListener('change',async e=>{const file=e.target.files[0];if(!file)return;try{if(file.size>10*1024*1024)throw Error('Filen er for stor (maks. 10 MB).');const incoming=readBackup(await file.text());const result=mergeRecords(records,incoming);pending=incoming;$('#import-summary').textContent=`Filen indeholder ${incoming.length} ${incoming.length===1?"aflæsning":"aflæsninger"}. ${result.added} ${result.added===1?"ny tilføjes":"nye tilføjes"}, og ${incoming.length-result.added} identiske springes over.`;$('#import-dialog').showModal();}catch(e){pending=null;tell('Import afvist: '+e.message,true);}});
+$('#import-file').addEventListener('change',async e=>{const file=e.target.files[0];if(!file)return;try{if(file.size>10*1024*1024)throw Error('Filen er for stor (maks. 10 MB).');const incoming=await readWithHeatChoice(await file.text(),'Denne backup er fra den tidligere version. Hvordan blev varmetallene i filen indtastet?');const result=mergeRecords(records,incoming);pending=incoming;$('#import-summary').textContent=`Filen indeholder ${incoming.length} ${incoming.length===1?"aflæsning":"aflæsninger"}. ${result.added} ${result.added===1?"ny tilføjes":"nye tilføjes"}, og ${incoming.length-result.added} identiske springes over.`;$('#import-dialog').showModal();}catch(e){pending=null;tell('Import afvist: '+e.message,true);}});
 $('#import-cancel').addEventListener('click',()=>{$('#import-dialog').close();pending=null;});
 $('#import-confirm').addEventListener('click',()=>{try{if(!pending)throw Error('Vælg backupfilen igen.');const result=mergeRecords(records,pending);persist(result.records);$('#import-dialog').close();pending=null;resetForm();tell(`${result.added===1?"1 ny aflæsning er":result.added+" nye aflæsninger er"} importeret. Eksisterende aflæsninger er bevaret.`);}catch(e){$('#import-dialog').close();pending=null;tell('Import afvist: '+e.message,true);}});
 window.addEventListener('storage',e=>{if(e.key===KEY || e.key===null){tell('Aflæsninger er ændret i et andet vindue. Genindlæs siden for at arbejde med den nyeste historik.',true);writable=false;$('#save').disabled=true;$('#import').disabled=true;render();}});
-initInputs();load();resetForm();$('#date').max=today();render();renderBackupStatus();
+initInputs();await load();resetForm();$('#date').max=today();render();renderBackupStatus();
 if('serviceWorker' in navigator && window.isSecureContext){
   navigator.serviceWorker.register('./sw.js').then(()=>navigator.serviceWorker.ready).then(()=>{$('#offline-status').textContent='Klar til offline. Appen kan åbnes fra denne adresse uden internet, så længe browseren beholder de gemte appfiler.';}).catch(()=>{$('#offline-status').textContent='Offline er ikke klar. Åbn appen med internet og genindlæs for at prøve igen. Aflæsninger gemmes stadig lokalt, hvis lageret er tilgængeligt.';});
 }else $('#offline-status').textContent='Offline kræver en HTTPS-adresse (eller localhost ved test). Åbning af HTML-filen direkte giver ikke fuld appfunktion.';

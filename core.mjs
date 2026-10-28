@@ -1,4 +1,4 @@
-export const METERS = { el: { name: 'El', unit: 'kWh', icon: 'ϟ' }, vand: { name: 'Vand', unit: 'm³', icon: '◉' }, varme: { name: 'Varme', unit: 'MWh', icon: '♨' } };
+export const METERS = { el: { name: 'El', unit: 'kWh', icon: 'ϟ' }, vand: { name: 'Vand', unit: 'm³', icon: '◉' }, varme: { name: 'Varme', unit: 'kWh', icon: '♨' } };
 export const MAX_RECORDS = 20000;
 export function today() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
 export function validDate(s) { return typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s) && s >= '1900-01-01' && !Number.isNaN(Date.parse(s)) && new Date(s+'T12:00:00Z').toISOString().slice(0,10) === s; }
@@ -28,10 +28,15 @@ export function validateRecords(records) {
 }
 export function difference(row, previous) { return !previous || row.reset ? null : (Math.round(row.value*1000)-Math.round(previous.value*1000))/1000; }
 export function intervals(records,meter) { const rows=ordered(records,meter); return rows.map((r,i)=>({...r, previous:rows[i-1] || null, delta:difference(r,rows[i-1]), days:i ? Math.round((Date.parse(r.date)-Date.parse(rows[i-1].date))/86400000) : null })); }
-export function readBackup(text) {
+export function readBackup(text,legacyHeatUnit) {
   let data; try { data=JSON.parse(text); } catch { throw Error('Filen er ikke gyldig JSON. Vælg en backup fra Målerblik.'); }
-  if (!data || data.app !== 'maalerblik' || data.version !== 1) throw Error('Filen er ikke en understøttet Målerblik-backup (version 1).');
-  return validateRecords(data.records);
+  if (!data || data.app !== 'maalerblik' || ![1,2].includes(data.version) || (data.version===2 && data.heatUnit!=='kWh')) throw Error('Filen er ikke en understøttet Målerblik-backup med en kendt varmeenhed.');
+  const rows=validateRecords(data.records);
+  if(data.version===1 && rows.some(r=>r.meter==='varme')){
+    if(!['kWh','MWh'].includes(legacyHeatUnit)){const error=Error('Vælg, hvilken enhed de gamle varmetal blev indtastet i.');error.code='HEAT_UNIT_REQUIRED';throw error;}
+    if(legacyHeatUnit==='MWh')return validateRecords(rows.map(r=>r.meter==='varme'?{...r,value:Math.round(r.value*1000)}:r));
+  }
+  return rows;
 }
 export function mergeRecords(existing,incoming) {
   const result = [...existing], keys = new Map(existing.map(r=>[r.meter+'|'+r.date,r]));
